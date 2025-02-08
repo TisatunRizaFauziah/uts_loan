@@ -79,17 +79,15 @@ public class PaymentServiceImpl implements PaymentService {
                     return new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment tidak ditemukan");
                 });
 
-        // Pastikan loan terkait ada sebelum update
         Loan loan = loanRepository.findById(dto.getLoanId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loan terkait tidak ditemukan"));
 
-        // Update data payment
+
         paymentToUpdate.setLoan(loan);
         paymentToUpdate.setAmount(dto.getAmount());
         paymentToUpdate.setPaymentDate(dto.getPaymentDate());
         paymentToUpdate.setPaymentMethod(dto.getPaymentMethod());
 
-        // Simpan perubahan ke database
         paymentRepository.save(paymentToUpdate);
     }
 

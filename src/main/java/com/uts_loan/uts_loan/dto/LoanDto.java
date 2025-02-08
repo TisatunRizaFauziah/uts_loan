@@ -2,7 +2,6 @@ package com.uts_loan.uts_loan.dto;
 
 import java.time.LocalDate;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @NoArgsConstructor
-public class LoanDto{
+public class LoanDto {
     private Integer loanId;
     private int customerId;
     private int amount;
@@ -21,5 +20,5 @@ public class LoanDto{
     private LocalDate dueDate;
     private String tenor;
     private String status;
-  
+
 }

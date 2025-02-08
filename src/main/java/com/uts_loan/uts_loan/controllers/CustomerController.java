@@ -1,6 +1,5 @@
 package com.uts_loan.uts_loan.controllers;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,84 +29,77 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @Autowired
-    CustomerController(CustomerService customerService){
+    CustomerController(CustomerService customerService) {
         this.customerService = customerService;
     }
 
     @GetMapping("/find-all")
-    public ResponseEntity<GenericResponse<Object>> findAll(
-            @RequestParam int page,
-            @RequestParam int size,
+    public ResponseEntity<GenericResponse<PageResponse<CustomerDto>>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String accountNumber,
             @RequestParam(required = false) String customerName,
             @RequestParam(required = false) String customerType) {
-    
+
         Pageable pageable = PageRequest.of(page, size);
-    
-        PageResponse<CustomerDto> response = customerService.findAll(accountNumber, customerName, customerType, pageable);
-    
-        return ResponseEntity.ok().body(GenericResponse.builder()
+        PageResponse<CustomerDto> response = customerService.findAll(accountNumber, customerName, customerType,
+                pageable);
+
+        return ResponseEntity.ok(GenericResponse.<PageResponse<CustomerDto>>builder()
                 .success(true)
                 .message("Data berhasil diambil")
                 .data(response)
                 .build());
     }
-    
-    
-        @PostMapping("/create")
-        public ResponseEntity<GenericResponse<Customer>> create(@RequestBody CustomerDto dto) {
-            Customer newCustomer = customerService.create(dto);
-            return ResponseEntity.ok().body(GenericResponse.<Customer>builder()
+
+    @PostMapping("/create")
+    public ResponseEntity<GenericResponse<Customer>> create(@RequestBody CustomerDto dto) {
+        Customer newCustomer = customerService.create(dto);
+        return ResponseEntity.ok().body(GenericResponse.<Customer>builder()
+                .success(true)
+                .message("Data berhasil ditambahkan")
+                .data(newCustomer)
+                .build());
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<GenericResponse<Object>> update(@PathVariable int id,
+            @RequestBody UpdateCustomerDto dto) {
+
+        try {
+            customerService.update(id, dto);
+
+        } catch (ResponseStatusException ex) {
+            ex.printStackTrace();
+            return ResponseEntity.status(ex.getStatusCode()).body(GenericResponse.builder()
                     .success(true)
-                    .message("Data berhasil ditambahkan")
-                    .data(newCustomer)
+                    .message(ex.getReason())
+                    .data(null)
+                    .build());
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(GenericResponse.builder()
+                    .success(true)
+                    .message("Terjadi kesalahan di sistem internal")
+                    .data(null)
                     .build());
         }
 
-    
-
-    @PutMapping("/update/{id}")
-    public ResponseEntity<GenericResponse<Object>> update(@PathVariable int id ,
-                                         @RequestBody UpdateCustomerDto dto){
-                                        
-        try{
-            customerService.update(id, dto);
-
-        }catch(ResponseStatusException ex){
-            ex.printStackTrace();
-            return ResponseEntity.status(ex.getStatusCode()).body(GenericResponse.builder()
-                                .success(true)
-                                .message(ex.getReason())
-                                .data(null)
-                                .build());
-
-        } catch(Exception e){
-            return ResponseEntity.internalServerError().body(GenericResponse.builder()
-                                .success(true)
-                                .message("Terjadi kesalahan di sistem internal")
-                                .data(null)
-                                .build());
-        }
-
         return ResponseEntity.ok().body(GenericResponse.builder()
-                            .success(true)
-                            .message("Data berhasil di update")
-                            .data(null)
-                            .build());
+                .success(true)
+                .message("Data berhasil di update")
+                .data(null)
+                .build());
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<GenericResponse<Object>> delete(@PathVariable int id){
+    public ResponseEntity<GenericResponse<Object>> delete(@PathVariable int id) {
         customerService.delete(id);
         return ResponseEntity.ok().body(GenericResponse.builder()
-                            .success(true)
-                            .message("Data berhasil di delete")
-                            .data(null)
-                            .build());
+                .success(true)
+                .message("Data berhasil di delete")
+                .data(null)
+                .build());
     }
 
-   
-
-
-   
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @NoArgsConstructor
-public class CustomerDto{
+public class CustomerDto {
 
     private Integer id;
     private String accountNumber;
@@ -17,5 +17,5 @@ public class CustomerDto{
     private String phoneNumber;
     private String address;
     private String customerType;
-    
+
 }

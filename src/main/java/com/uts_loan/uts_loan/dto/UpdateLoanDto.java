@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 public class UpdateLoanDto {
-    private int id;
+
     private int idCustomer;
     private int amount;
     private int remain;

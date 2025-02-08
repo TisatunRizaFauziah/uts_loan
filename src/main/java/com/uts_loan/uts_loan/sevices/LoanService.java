@@ -14,8 +14,8 @@ import com.uts_loan.uts_loan.dto.UpdateLoanDto;
 import com.uts_loan.uts_loan.models.Loan;
 
 public interface LoanService {
-    PageResponse<LoanDto> findAll(int idCustomer, String tenor, String status, Pageable pageable);
-
+    
+    PageResponse<LoanDto> findAll(Integer customerId, String tenor, String status, Pageable pageable);
     Loan create(LoanDto dto);
 
     void update(int id, UpdateLoanDto dto);

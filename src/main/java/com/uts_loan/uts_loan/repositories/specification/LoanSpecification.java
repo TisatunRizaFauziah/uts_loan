@@ -4,19 +4,30 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.uts_loan.uts_loan.models.Loan;
 
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoanSpecification {
-    public static Specification<Loan> filterCustomerId(Integer customerId) {
-        return (root, query, criteriaBuilder) -> (customerId == null) ? null
-                : criteriaBuilder.equal(root.get("customer").get("id"), customerId);
-    }
 
-    public static Specification<Loan> filterTenor(String tenor) {
-        return (root, query, criteriaBuilder) -> (tenor == null || tenor.isEmpty()) ? null
-                : criteriaBuilder.like(root.get("tenor"), "%" + tenor + "%");
-    }
+    public static Specification<Loan> buildSpecification(Integer customerId, String tenor, String status) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-    public static Specification<Loan> filterStatus(String status) {
-        return (root, query, criteriaBuilder) -> (status == null || status.isEmpty()) ? null
-                : criteriaBuilder.equal(root.get("status"), status);
+            if (customerId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("customer").get("id"), customerId));
+            }
+
+            if (tenor != null && !tenor.isEmpty()) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("tenor")),
+                        "%" + tenor.toLowerCase() + "%"));
+            }
+
+            if (status != null && !status.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }

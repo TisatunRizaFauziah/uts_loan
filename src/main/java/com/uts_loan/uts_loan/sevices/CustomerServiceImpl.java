@@ -1,6 +1,5 @@
 package com.uts_loan.uts_loan.sevices;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,45 +111,34 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
     }
-    
+
     @Override
     public PageResponse<CustomerDto> findAll(String accountNumber, String customerName, String customerType,
             Pageable pageable) {
         Specification<Customer> spec = Specification.where(null);
 
+        // Filter berdasarkan accountNumber
         if (accountNumber != null && !accountNumber.isEmpty()) {
             spec = spec.and(CustomerSpecification.containAccountNumber(accountNumber));
         }
+
+        // Filter berdasarkan customerName
         if (customerName != null && !customerName.isEmpty()) {
             spec = spec.and(CustomerSpecification.containName(customerName));
         }
+
+        // Filter berdasarkan customerType
         if (customerType != null && !customerType.isEmpty()) {
             spec = spec.and(CustomerSpecification.filterByCustomerType(customerType));
         }
 
+        // Fetch data dari database dengan pagination
         Page<Customer> customerPage = customerRepository.findAll(spec, pageable);
-
-        // Cek apakah hasil query kosong
-        if (customerPage.isEmpty()) {
-            System.out.println("No customers found.");
-            return PageResponse.<CustomerDto>builder()
-                    .page(pageable.getPageNumber())
-                    .size(pageable.getPageSize())
-                    .totalPage(0)
-                    .totalItem(0)
-                    .items(Collections.emptyList())
-                    .build();
-        }
 
         // Mapping ke DTO
         List<CustomerDto> customerDtos = customerPage.getContent().stream()
                 .map(this::mapToCustomerDto)
                 .toList();
-
-        // Cek hasil mapping
-        if (customerDtos.isEmpty()) {
-            System.out.println("Mapping to CustomerDto failed.");
-        }
 
         return PageResponse.<CustomerDto>builder()
                 .page(pageable.getPageNumber())

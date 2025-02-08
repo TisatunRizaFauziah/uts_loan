@@ -1,6 +1,5 @@
 package com.uts_loan.uts_loan.controllers;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,36 +32,50 @@ import com.uts_loan.uts_loan.sevices.LoanService;
 @RestController
 @RequestMapping("/loan")
 public class LoanController {
-     private final LoanService loanService;
+    private final LoanService loanService;
 
     @Autowired
-    LoanController(LoanService loanService){
+    LoanController(LoanService loanService) {
         this.loanService = loanService;
     }
 
     @PostMapping("/create")
-public ResponseEntity<GenericResponse<Object>> create(@RequestBody LoanDto dto) {
-    Loan newLoan = loanService.create(dto); 
-    return ResponseEntity.ok().body(GenericResponse.builder()
-            .success(true)
-            .message("Data berhasil ditambahkan")
-            .data(newLoan) 
-            .build());
-}
-
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<GenericResponse<Object>> delete(@PathVariable int id) {
-        loanService.delete(id);
-        return ResponseEntity.ok(GenericResponse.builder()
+    public ResponseEntity<GenericResponse<Object>> create(@RequestBody LoanDto dto) {
+        Loan newLoan = loanService.create(dto);
+        return ResponseEntity.ok().body(GenericResponse.builder()
                 .success(true)
-                .message("Data berhasil dihapus")
-                .data(null)
+                .message("Data berhasil ditambahkan")
+                .data(newLoan)
                 .build());
     }
 
-     @PutMapping("/update/{id}")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<GenericResponse<Object>> delete(@PathVariable int id) {
+        try {
+            loanService.delete(id);
+            return ResponseEntity.ok(GenericResponse.builder()
+                    .success(true)
+                    .message("Data berhasil dihapus")
+                    .data(null)
+                    .build());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(GenericResponse.builder()
+                    .success(false)
+                    .message(ex.getMessage())
+                    .data(null)
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(GenericResponse.builder()
+                    .success(false)
+                    .message("Terjadi kesalahan di sistem internal")
+                    .data(null)
+                    .build());
+        }
+    }
+
+    @PutMapping("/update/{id}")
     public ResponseEntity<GenericResponse<Object>> updateLoan(@PathVariable int id,
-                                                              @RequestBody UpdateLoanDto dto) {
+            @RequestBody UpdateLoanDto dto) {
         try {
             loanService.update(id, dto);
         } catch (ResponseStatusException ex) {
@@ -87,45 +100,33 @@ public ResponseEntity<GenericResponse<Object>> create(@RequestBody LoanDto dto) 
                 .build());
     }
 
-@GetMapping("/find-all")
-public ResponseEntity<GenericResponse<PageResponse<LoanDto>>> findAll(
-        @RequestParam int page,
-        @RequestParam int size,
-        @RequestParam(required = false) Integer customerId,
-        @RequestParam(required = false) String tenor,
-        @RequestParam(required = false) String status) {
+    @GetMapping("/find-all")
+    public ResponseEntity<GenericResponse<PageResponse<LoanDto>>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer customerId,
+            @RequestParam(required = false) String tenor,
+            @RequestParam(required = false) String status) {
 
-    // Jika semua parameter filter kosong, langsung return "Data tidak ditemukan"
-    if ((customerId == null || customerId <= 0) &&
-        (tenor == null || tenor.isEmpty()) &&
-        (status == null || status.isEmpty())) {
+        Pageable pageable = PageRequest.of(page, size);
+        PageResponse<LoanDto> response = loanService.findAll(customerId, tenor, status, pageable);
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(GenericResponse.<PageResponse<LoanDto>>builder()
-                .success(false)
-                .message("Data tidak ditemukan - Harap masukkan filter pencarian")
-                .data(null)
+        if (response.getItems().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(GenericResponse.<PageResponse<LoanDto>>builder()
+                    .success(false)
+                    .message("Data tidak ditemukan")
+                    .data(null)
+                    .build());
+        }
+
+        return ResponseEntity.ok().body(GenericResponse.<PageResponse<LoanDto>>builder()
+                .success(true)
+                .message("Data berhasil diambil")
+                .data(response)
                 .build());
     }
 
-    Pageable pageable = PageRequest.of(page, size);
-    PageResponse<LoanDto> response = loanService.findAll(customerId, tenor, status, pageable);
-
-    // Jika hasil pencarian kosong, return "Data tidak ditemukan"
-    if (response == null ) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(GenericResponse.<PageResponse<LoanDto>>builder()
-                .success(false)
-                .message("Data tidak ditemukan")
-                .data(null)
-                .build());
-    }
-
-    return ResponseEntity.ok().body(GenericResponse.<PageResponse<LoanDto>>builder()
-            .success(true)
-            .message("Data berhasil diambil")
-            .data(response)
-            .build());
-}
-@GetMapping("/loan-active")
+    @GetMapping("/loan-active")
     public ResponseEntity<GenericResponse<List<LoanStatusDto>>> getActiveLoans() {
         List<LoanStatusDto> activeLoans = loanService.findActiveLoans();
 
@@ -136,21 +137,22 @@ public ResponseEntity<GenericResponse<PageResponse<LoanDto>>> findAll(
                 .build());
     }
 
-   @GetMapping("/loan-report")
-public ResponseEntity<GenericResponse<LoanReportDto>> getLoanReport() {
-    LoanReportDto loanReport = loanService.getLoanReport();
+    @GetMapping("/loan-report")
+    public ResponseEntity<GenericResponse<LoanReportDto>> getLoanReport() {
+        LoanReportDto loanReport = loanService.getLoanReport();
 
-    return ResponseEntity.ok(GenericResponse.<LoanReportDto>builder()
-            .success(true)
-            .message("Berhasil memuat data")
-            .data(loanReport)
-            .build());
-}
-@GetMapping("/loan-report-by-customer-type")
+        return ResponseEntity.ok(GenericResponse.<LoanReportDto>builder()
+                .success(true)
+                .message("Berhasil memuat data")
+                .data(loanReport)
+                .build());
+    }
+
+    @GetMapping("/loan-report-by-customer-type")
     public ResponseEntity<GenericResponse<LoanReportByCustomerTypeDto>> getLoanReportByCustomerType(
-        @RequestParam String customerType) {
-        
-        LoanReportByCustomerTypeDto loanReport = loanService.getLoanReportByCustomerType(customerType); 
+            @RequestParam String customerType) {
+
+        LoanReportByCustomerTypeDto loanReport = loanService.getLoanReportByCustomerType(customerType);
 
         return ResponseEntity.ok(GenericResponse.<LoanReportByCustomerTypeDto>builder()
                 .success(true)
@@ -159,10 +161,10 @@ public ResponseEntity<GenericResponse<LoanReportDto>> getLoanReport() {
                 .build());
     }
 
-      @GetMapping("/personal-loan-history")
+    @GetMapping("/personal-loan-history")
     public ResponseEntity<GenericResponse<List<LoanHistoryDto>>> getPersonalLoanHistory(
-        @RequestParam String accountNumber) { 
-        
+            @RequestParam String accountNumber) {
+
         List<LoanHistoryDto> loanHistory = loanService.getPersonalLoanHistory(accountNumber);
 
         return ResponseEntity.ok(GenericResponse.<List<LoanHistoryDto>>builder()
@@ -172,10 +174,4 @@ public ResponseEntity<GenericResponse<LoanReportDto>> getLoanReport() {
                 .build());
     }
 
-    
-    
-   
 }
-
-
-

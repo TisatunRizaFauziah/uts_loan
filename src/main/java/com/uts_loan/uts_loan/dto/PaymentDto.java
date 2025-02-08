@@ -16,5 +16,5 @@ public class PaymentDto {
     private int amount;
     private LocalDate paymentDate;
     private String paymentMethod;
-   
+
 }

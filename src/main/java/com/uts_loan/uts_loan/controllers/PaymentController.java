@@ -32,21 +32,21 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @Autowired
-    PaymentController(PaymentService paymentService){
+    PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 
-     @PostMapping("/create")
-    public ResponseEntity<GenericResponse<Object>> create(@RequestBody PaymentDto dto){
+    @PostMapping("/create")
+    public ResponseEntity<GenericResponse<Object>> create(@RequestBody PaymentDto dto) {
         Payment newPayment = paymentService.create(dto);
         return ResponseEntity.ok().body(GenericResponse.builder()
-                            .success(true)
-                            .message("Data berhasil di tambahkan")
-                            .data(newPayment)
-                            .build());
+                .success(true)
+                .message("Data berhasil di tambahkan")
+                .data(newPayment)
+                .build());
     }
 
-     @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<GenericResponse<Object>> delete(@PathVariable int id) {
         paymentService.delete(id);
         return ResponseEntity.ok(GenericResponse.builder()
@@ -58,7 +58,7 @@ public class PaymentController {
 
     @PutMapping("/update/{id}")
     public ResponseEntity<GenericResponse<Object>> updatePayment(@PathVariable int id,
-                                                                 @RequestBody UpdatePaymentDto dto) {
+            @RequestBody UpdatePaymentDto dto) {
         try {
             paymentService.update(id, dto);
         } catch (ResponseStatusException ex) {
@@ -82,14 +82,15 @@ public class PaymentController {
                 .data(null)
                 .build());
     }
+
     @GetMapping("/find-all")
     public ResponseEntity<GenericResponse<PageResponse<PaymentDto>>> findAll(
-            @RequestParam int page,
-            @RequestParam int size,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer loanId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate paymentDate,
             @RequestParam(required = false) String paymentMethod) {
-    
+
         Pageable pageable = PageRequest.of(page, size);
         PageResponse<PaymentDto> response = paymentService.findAll(loanId, paymentDate, paymentMethod, pageable);
 
@@ -100,13 +101,12 @@ public class PaymentController {
                     .data(null)
                     .build());
         }
-    
+
         return ResponseEntity.ok().body(GenericResponse.<PageResponse<PaymentDto>>builder()
                 .success(true)
                 .message("Data berhasil diambil")
                 .data(response)
                 .build());
     }
-    
 
 }

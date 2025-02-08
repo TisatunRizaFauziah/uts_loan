@@ -13,5 +13,5 @@ public class LoanReportByCustomerTypeDto {
     private String customerType;
     private int totalPaid;
     private int totalUnpaid;
-   
+
 }
