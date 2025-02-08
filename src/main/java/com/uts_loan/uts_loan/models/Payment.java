@@ -36,4 +36,5 @@ public class Payment {
     @Column(name = "payment_method", length = 500)
     private String paymentMethod;
 
+    
 }

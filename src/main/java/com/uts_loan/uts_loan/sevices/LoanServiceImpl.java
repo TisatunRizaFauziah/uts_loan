@@ -1,7 +1,9 @@
 package com.uts_loan.uts_loan.sevices;
 
 import java.util.ArrayList;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import com.uts_loan.uts_loan.dto.LoanDto;
 import com.uts_loan.uts_loan.dto.LoanHistoryDto;
 import com.uts_loan.uts_loan.dto.LoanReportByCustomerTypeDto;
 import com.uts_loan.uts_loan.dto.LoanReportDto;
+import com.uts_loan.uts_loan.dto.LoanStatusDto;
 import com.uts_loan.uts_loan.dto.PageResponse;
 import com.uts_loan.uts_loan.dto.PaymentHistoryDto;
 import com.uts_loan.uts_loan.dto.UpdateLoanDto;
@@ -143,56 +146,52 @@ public class LoanServiceImpl implements LoanService {
                 .build();
     }
 
-    public List<LoanDto> findActiveLoans() {
+    public List<LoanStatusDto> findActiveLoans() {
         List<Loan> loans = loanRepository.findByStatus("active");
         return loans.stream()
                 .map(this::mapToLoanStatus)
                 .collect(Collectors.toList());
     }
-
-    private LoanDto mapToLoanStatus(Loan loan) {
-
-        return LoanDto.builder()
+    
+    private LoanStatusDto mapToLoanStatus(Loan loan) {
+        Customer customer = Optional.ofNullable(loan.getCustomer())
+                .orElseThrow(() -> new RuntimeException("Customer not found for loan ID: " + loan.getId()));
+    
+        return LoanStatusDto.builder()
                 .loanId(loan.getId())
-                .customerId(loan.getCustomer().getId())
-                .accountNumber(loan.getCustomer().getAccountNumber())
-                .customerName(loan.getCustomer().getCustomerName())
+                .customerId(customer.getId())
+                .accountNumber(customer.getAccountNumber())
+                .customerName(customer.getCustomerName())
                 .amount(loan.getAmount())
                 .remain(loan.getRemain())
                 .startDate(loan.getStartDate())
                 .dueDate(loan.getDueDate())
                 .status(loan.getStatus())
                 .tenor(loan.getTenor())
-
                 .build();
     }
-
+    
+  
     @Override
     public LoanReportDto getLoanReport() {
-        List<Loan> loans = loanRepository.findAll(); // Ambil semua data loan
-
-        int totalPaid = 0;
-        int totalUnpaid = 0;
-
-        for (Loan loan : loans) {
-            totalPaid += (loan.getAmount() - loan.getRemain()); // Hitung total yang sudah dibayar
-            totalUnpaid += loan.getRemain(); // Hitung total yang belum dibayar
-        }
-
+        List<Loan> loans = loanRepository.findAll(); 
+        int totalPaid = paymentRepository.getTotalPaidAmount(); 
+        int totalUnpaid = loans.stream().mapToInt(Loan::getRemain).sum(); 
+    
         return new LoanReportDto(totalPaid, totalUnpaid);
     }
-
+    
     @Override
     public LoanReportByCustomerTypeDto getLoanReportByCustomerType(String customerType) {
-        List<Loan> loans = loanRepository.findAll(); // Ambil semua data pinjaman
+        List<Loan> loans = loanRepository.findAll(); 
 
         int totalPaid = 0;
         int totalUnpaid = 0;
 
         for (Loan loan : loans) {
             if (loan.getCustomer().getCustomerType().equalsIgnoreCase(customerType)) {
-                totalPaid += loan.getAmount() - loan.getRemain(); // Sudah dibayar
-                totalUnpaid += loan.getRemain(); // Belum dibayar
+                totalPaid += loan.getAmount() - loan.getRemain(); 
+                totalUnpaid += loan.getRemain(); 
             }
         }
 
@@ -200,17 +199,20 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public List<LoanHistoryDto> getPersonalLoanHistory(int customerId) {
-        List<Loan> loans = loanRepository.findByCustomerId(customerId); // Ambil semua pinjaman berdasarkan customerId
-
+    public List<LoanHistoryDto> getPersonalLoanHistory(String accountNumber) {
+      
+        Customer customer = customerRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Customer with account number " + accountNumber + " not found"));
+    
+        List<Loan> loans = loanRepository.findByCustomerId(customer.getId());
+    
         List<LoanHistoryDto> loanHistories = new ArrayList<>();
-
+    
         for (Loan loan : loans) {
-            List<Payment> payments = paymentRepository.findByLoanId(loan.getId()); // Ambil pembayaran berdasarkan
-                                                                                   // loanId
+            List<Payment> payments = paymentRepository.findByLoanId(loan.getId());
             List<PaymentHistoryDto> paymentHistory = new ArrayList<>();
-
-            for (Payment payment : payments) { // Loop setiap pembayaran terkait pinjaman
+    
+            for (Payment payment : payments) {
                 paymentHistory.add(new PaymentHistoryDto(
                         payment.getId(),
                         payment.getAmount(),
@@ -228,8 +230,7 @@ public class LoanServiceImpl implements LoanService {
                     loan.getStatus(),
                     paymentHistory));
         }
-
+    
         return loanHistories;
     }
-
-}
+}    

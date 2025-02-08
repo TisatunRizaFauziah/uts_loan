@@ -2,6 +2,7 @@ package com.uts_loan.uts_loan.repositories;
 
 import java.util.List;
 
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,4 +23,6 @@ public interface LoanRepository extends JpaRepository<Loan, Integer> {
 
       @Query("SELECT SUM(l.remain) FROM Loan l")
       Integer sumTotalUnpaid();
+
+     
 }

@@ -46,4 +46,6 @@ public class Loan {
     @Column(name = "status", length = 500)
     private String status;
 
+    
+
 }

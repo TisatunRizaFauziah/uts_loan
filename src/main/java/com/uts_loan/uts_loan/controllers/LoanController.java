@@ -24,6 +24,7 @@ import com.uts_loan.uts_loan.dto.LoanDto;
 import com.uts_loan.uts_loan.dto.LoanHistoryDto;
 import com.uts_loan.uts_loan.dto.LoanReportByCustomerTypeDto;
 import com.uts_loan.uts_loan.dto.LoanReportDto;
+import com.uts_loan.uts_loan.dto.LoanStatusDto;
 import com.uts_loan.uts_loan.dto.PageResponse;
 import com.uts_loan.uts_loan.dto.UpdateLoanDto;
 import com.uts_loan.uts_loan.models.Loan;
@@ -125,10 +126,10 @@ public ResponseEntity<GenericResponse<PageResponse<LoanDto>>> findAll(
             .build());
 }
 @GetMapping("/loan-active")
-    public ResponseEntity<GenericResponse<List<LoanDto>>> getActiveLoans() {
-        List<LoanDto> activeLoans = loanService.findActiveLoans();
+    public ResponseEntity<GenericResponse<List<LoanStatusDto>>> getActiveLoans() {
+        List<LoanStatusDto> activeLoans = loanService.findActiveLoans();
 
-        return ResponseEntity.ok(GenericResponse.<List<LoanDto>>builder()
+        return ResponseEntity.ok(GenericResponse.<List<LoanStatusDto>>builder()
                 .success(true)
                 .message("Berhasil memuat data")
                 .data(activeLoans)
@@ -160,9 +161,9 @@ public ResponseEntity<GenericResponse<LoanReportDto>> getLoanReport() {
 
       @GetMapping("/personal-loan-history")
     public ResponseEntity<GenericResponse<List<LoanHistoryDto>>> getPersonalLoanHistory(
-        @RequestParam int customerId) { 
+        @RequestParam String accountNumber) { 
         
-        List<LoanHistoryDto> loanHistory = loanService.getPersonalLoanHistory(customerId);
+        List<LoanHistoryDto> loanHistory = loanService.getPersonalLoanHistory(accountNumber);
 
         return ResponseEntity.ok(GenericResponse.<List<LoanHistoryDto>>builder()
                 .success(true)

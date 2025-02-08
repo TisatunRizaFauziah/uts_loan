@@ -1,5 +1,7 @@
 package com.uts_loan.uts_loan.repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,5 +22,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
                @Param("customerName") String customerName,
                @Param("customerType") String customerType,
                Pageable pageable);
-
+ Optional<Customer> findByAccountNumber(String accountNumber);
 }

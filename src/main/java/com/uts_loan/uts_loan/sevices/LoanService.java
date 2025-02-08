@@ -8,6 +8,7 @@ import com.uts_loan.uts_loan.dto.LoanDto;
 import com.uts_loan.uts_loan.dto.LoanHistoryDto;
 import com.uts_loan.uts_loan.dto.LoanReportByCustomerTypeDto;
 import com.uts_loan.uts_loan.dto.LoanReportDto;
+import com.uts_loan.uts_loan.dto.LoanStatusDto;
 import com.uts_loan.uts_loan.dto.PageResponse;
 import com.uts_loan.uts_loan.dto.UpdateLoanDto;
 import com.uts_loan.uts_loan.models.Loan;
@@ -21,11 +22,11 @@ public interface LoanService {
 
     void delete(int id);
 
-    List<LoanDto> findActiveLoans();
-
     LoanReportDto getLoanReport();
 
     LoanReportByCustomerTypeDto getLoanReportByCustomerType(String Customer);
 
-    List<LoanHistoryDto> getPersonalLoanHistory(int customerId);
+    List<LoanHistoryDto> getPersonalLoanHistory(String accountNumber);
+
+    List<LoanStatusDto> findActiveLoans();
 }
